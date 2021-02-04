@@ -1,20 +1,20 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import { Section, Container, Button } from "rbx";
+import {  Button, Title, Level } from "rbx";
 import React from "react";
-import { AppTitle } from "~/components/app-title";
-import { MinecraftControl } from "~/components/minecraft-control";
+import { MinecraftControl } from "@/components/minecraft-control";
+import blockStyles from '@/styles/block.module.css'
+
+const Content = () => <>
+  <div className={blockStyles.block}>
+    <Title size={4}>Minecraft</Title>
+    <MinecraftControl />
+  </div>
+</>
 
 export default function Home() {
-  const { isAuthenticated, loginWithPopup } = useAuth0()
-  return (
-    <Section>
-      <Container>
-        <AppTitle />
-        { isAuthenticated
-          ? <MinecraftControl />
-          : <Button onClick={loginWithPopup}>Log In</Button>
-        }
-      </Container>
-    </Section>
-  )
+  const { isAuthenticated, loginWithPopup, isLoading } = useAuth0()
+  if (isLoading) return null
+  if (!isAuthenticated) return <Button onClick={loginWithPopup}>Log In</Button>
+
+  return <Content />
 }

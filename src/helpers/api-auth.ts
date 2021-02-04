@@ -27,7 +27,9 @@ export const withAuth = (handler: NextApiHandler) => async (req: NextApiRequest,
     return handler(req, res);
   } catch (err) {
     if (err instanceof JsonWebTokenError) {
-      res.status(401).end
+      return res.status(401).end
     }
+    console.error(err)
+    res.status(500).end()
   }
 }

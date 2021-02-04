@@ -1,0 +1,16 @@
+.item {
+  display: flex;
+  background-color: white;
+  padding: 16px;
+  border-radius: 4px;
+  align-items: center;
+}
+
+.Pending {
+  opacity: .2;
+}
+
+.label {
+  margin: 0 20px;
+  flex-shrink: 0;
+}
