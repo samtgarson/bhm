@@ -1,44 +1,57 @@
-import { Processor, ProcessorState } from './processor'
 import { IDroplet } from "dots-wrapper/dist/modules/droplet";
 import { AxiosInstance } from 'axios';
 import pWhilst from 'p-whilst';
+import { sleep } from '@/helpers/sleep';
 
-export class SpinUp extends Processor {
+export class SpinUp {
   constructor(
-    client: AxiosInstance,
-    update: (state: ProcessorState) => void
-  ) {
-    super(client, update, {
-      'Creating droplet': SpinUp.create,
-      'Waiting for droplet': SpinUp.wait,
-      'Assigning IP address': SpinUp.assign,
-      'Pinging MC server': SpinUp.ping
-    })
+    private client: AxiosInstance,
+  ) {}
+
+  get steps() {
+    return {
+      'Creating droplet': () => this.create(),
+      'Waiting for droplet': () => this.wait(),
+      'Assigning IP address': () => this.assign(),
+      'Pinging MC server': () => this.ping()
+    }
   }
 
-  static async create (client: AxiosInstance) {
-    await client.post('/create')
+  async create () {
+    await this.client.post('/create')
   }
 
-  static async wait (client: AxiosInstance) {
+  async wait () {
     let state: string
 
     await pWhilst(
       () => state !== 'active',
       async () => {
-        const { data } = await client.get<IDroplet>('/droplet')
+        const { data } = await this.client.get<IDroplet>('/droplet')
         state = data.status
-        await new Promise(r => setTimeout(r, 3000))
+        await sleep(3000)
       }
     )
   }
 
-  static async assign (client: AxiosInstance) {
-    await client.post('/assign')
+  async assign () {
+    await this.client.post('/assign')
   }
 
-  static async ping (client: AxiosInstance) {
-    await client.get<string>('/ping')
+  async ping () {
+    let state = false
+
+    await pWhilst(
+      () => !state,
+      async () => {
+        try {
+          await this.client.get<string>('/ping')
+          state = true
+        } catch (_) {
+          await sleep(5000)
+        }
+      }
+    )
   }
 }
 

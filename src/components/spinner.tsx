@@ -1,11 +1,11 @@
 import { useClient } from "@/helpers/use-client"
-import { ProcessorState, ProcessorStepState } from "@/services/processor"
+import { ProcessorState, ProcessorStepState, Processor } from "@/services/processor"
 import { Progress, Title } from "rbx"
 import { FC, useEffect, useState } from "react"
 import styles from '../styles/processor.module.css'
-import { SpinUp } from '@/services/spin-up'
 
 type SpinUpModalProps = {
+  direction: 'up' | 'down'
   done: () => void
 }
 
@@ -14,7 +14,7 @@ const iconFor = (state: ProcessorStepState) => {
     case ProcessorStepState.Pending:
       return <span className={styles[ProcessorStepState[state]]}>⏸</span>
     case ProcessorStepState.InProgress:
-      return <span className={styles[ProcessorStepState[state]]}>🔄</span>
+      return <span className={styles[ProcessorStepState[state]]}>✴️</span>
     case ProcessorStepState.Done:
       return <span className={styles[ProcessorStepState[state]]}>✅</span>
     case ProcessorStepState.Error:
@@ -22,18 +22,21 @@ const iconFor = (state: ProcessorStepState) => {
   }
 }
 
-export const SpinUpModal: FC<SpinUpModalProps> = ({ done }) => {
+export const Spinner: FC<SpinUpModalProps> = ({ direction, done }) => {
   const [state, setState] = useState<ProcessorState>()
   const client = useClient()
+  const processor = direction === 'up' ? Processor.spinUp : Processor.spinDown
 
   useEffect(() => {
     if (!client) return
     let mounted = true
-    const processor = new SpinUp(client, s => {
+
+    processor(client, s => {
       if (mounted) setState(s)
     })
-
-    processor.run().then(done).catch()
+      .run()
+      .then(done)
+      .catch()
 
     return () => { mounted = false }
   }, [client])
@@ -46,6 +49,9 @@ export const SpinUpModal: FC<SpinUpModalProps> = ({ done }) => {
         <span className={styles.label}>{msg}</span>
         { state === ProcessorStepState.InProgress &&
           <Progress color="light" size="small" />
+        }
+        { state === ProcessorStepState.Error &&
+          <p className="has-text-danger is-size-6">Something went wrong... try again</p>
         }
       </Title>
     ))

@@ -7,6 +7,8 @@ export enum Status {
   Down = "Down"
 }
 
+const sleep = () => new Promise(r => setTimeout(r, 2000))
+
 export class DoClient {
   private client: ReturnType<typeof createApiClient>;
   private prefix = process.env.DO_PREFIX!
@@ -47,23 +49,45 @@ export class DoClient {
 
   async assignIp(droplet: number) {
     const { data } = await this.client.floatingIp.assignIpToDroplet({ droplet_id: droplet, ip: this.ip })
-    let action = data.action
+    let { action } = data
 
     await pWhilst(
       () => action.status === 'in-progress',
-      async () => { action = await this.getAction(action.id) }
+      async () => { action = await this.getIPAction(action.id) }
     )
 
     if (action.status !== 'completed') throw new Error('Failed to assign UP')
   }
 
-  private async getAction(actionId: number) {
-    const { data } = await this.client.floatingIp.getFloatingIpAction({ action_id: actionId, ip: this.ip })
+  async findSnapshot() {
+    const { data } = await this.client.snapshot.listSnapshots({ resource_type: "droplet" })
+    return data.snapshots.find(snap => snap.name === this.prefix)
+  }
+
+  async getAction(droplet: number, actionId: number) {
+    const { data } = await this.client.droplet.getDropletAction({ action_id: actionId, droplet_id: droplet })
     return data.action
   }
 
-  private async findSnapshot() {
-    const { data } = await this.client.snapshot.listSnapshots({ resource_type: "droplet" })
-    return data.snapshots.find(snap => snap.tags.includes(this.prefix))
+
+  async destroyDroplet() {
+    await this.client.droplet.deleteDropletsByTag({ tag_name: this.prefix })
+  }
+
+  async destroySnapshot(id: string) {
+    await this.client.snapshot.deleteSnapshot({ snapshot_id: id });
+  }
+
+  async createSnapshot(droplet: number) {
+    const { data } = await this.client.droplet.snapshotDroplet({ droplet_id: droplet, name: this.prefix });
+    const { action } = data
+
+    return action
+  }
+
+  private async getIPAction(actionId: number) {
+    const { data } = await this.client.floatingIp.getFloatingIpAction({ action_id: actionId, ip: this.ip })
+    await sleep()
+    return data.action
   }
 }
