@@ -31,11 +31,16 @@ export const Spinner: FC<SpinUpModalProps> = ({ direction, done }) => {
     if (!client) return
     let mounted = true
 
+    window.onbeforeunload = () => true
+
     processor(client, s => {
       if (mounted) setState(s)
     })
       .run()
-      .then(done)
+      .then(() => {
+        window.onbeforeunload = null
+        done()
+      })
       .catch()
 
     return () => { mounted = false }
