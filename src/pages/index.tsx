@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import {  Button, Title, Level } from "rbx";
+import {  Button, Title } from "rbx";
 import React from "react";
 import { MinecraftControl } from "@/components/minecraft-control";
 import blockStyles from '@/styles/block.module.css'
@@ -12,9 +12,9 @@ const Content = () => <>
 </>
 
 export default function Home() {
-  const { isAuthenticated, loginWithPopup, isLoading } = useAuth0()
+  const { isAuthenticated, loginWithRedirect, isLoading } = useAuth0()
   if (isLoading) return null
-  if (!isAuthenticated) return <Button onClick={loginWithPopup}>Log In</Button>
+    if (!isAuthenticated) return <Button onClick={() => loginWithRedirect()}>Log In</Button>
 
   return <Content />
 }
