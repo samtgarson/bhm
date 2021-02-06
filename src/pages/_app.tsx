@@ -10,7 +10,7 @@ function CustomApp({ Component, pageProps }: AppProps) {
   return <Auth0Provider
       domain="samtgarson.eu.auth0.com"
       clientId="60drZvfdpY07ZDnpfmJCGp2LJZqA5Cq7"
-      redirectUri={process.env.APP_URL}
+      redirectUri={process.env.NEXT_PUBLIC_APP_URL}
     >
     <Section>
       <Container>
