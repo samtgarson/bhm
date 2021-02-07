@@ -11,6 +11,7 @@ function CustomApp({ Component, pageProps }: AppProps) {
       domain="samtgarson.eu.auth0.com"
       clientId="60drZvfdpY07ZDnpfmJCGp2LJZqA5Cq7"
       redirectUri={process.env.NEXT_PUBLIC_APP_URL}
+      cacheLocation="localstorage"
     >
     <Section>
       <Container>
